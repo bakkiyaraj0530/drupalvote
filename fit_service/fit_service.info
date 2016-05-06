@@ -1,0 +1,9 @@
+name = Fit Club Service
+description = Created for Be healthy apps - back end webservice.
+package = Fit Cub Office
+core = 7.x
+
+dependencies[] = services
+dependencies[] = rest_server
+
+version = "7.x-3.0"

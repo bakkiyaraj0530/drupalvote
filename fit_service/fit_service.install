@@ -1,0 +1,69 @@
+<?php
+/**
+ * @file
+ * Install, uninstall and update the Services module.
+ */
+
+/**
+ * Implements hook_schema().
+ */
+function fit_service_schema() {
+  $schema = array();
+
+  $schema['logactivity'] = array(
+    'description' => 'Stores endpoint information for services',
+    'fields' => array(
+      'actyid' => array(
+        'type'        => 'serial',
+        'description' => 'Primary ID field for the table. Not used for anything except internal lookups.',
+        'unsigned'    => TRUE,
+        'not null'    => TRUE,
+        'no export'   => TRUE,
+      ),
+      'userid' => array(
+        'description' => 'The user who has entered the activity.',
+        'type'        => 'int',
+        'length'      => 25,
+        'not null'    => TRUE,
+      ),
+	  'act_complete' => array(
+        'description' => 'Completed activity amount.',
+        'type'        => 'int',
+        'length'      => 25,
+        'not null'    => TRUE,
+      ),
+	  'cid' => array(
+        'description' => 'Challenge id.',
+        'type'        => 'int',
+        'length'      => 25,
+        'not null'    => TRUE,
+      ),
+      'time' => array(
+        'description' => 'The name of the server used in this endpoint.',
+        'type'        => 'int',
+        'length'      => 32,
+        'not null'    => TRUE,
+      ),
+     
+    ),
+    'primary key' => array('actyid'),
+  );
+
+  return $schema;
+}
+
+
+/**
+ * Implements hook_install().
+ */
+function fit_service_install() {
+
+}
+/**
+ * Implements hook_uninstall().
+ */
+function fit_service_uninstall() {
+ 
+}
+
+

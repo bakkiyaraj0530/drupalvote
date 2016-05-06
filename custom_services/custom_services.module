@@ -1,0 +1,307 @@
+<?php
+
+/**
+ * @file
+ * Used for updating the service arguments. 
+ * @param type $controller
+ * @param type $args
+ * @param type $options
+ * @return type arguments
+ */
+function custom_services_services_request_preprocess_alter($controller, &$args, $options) {
+  /** Alter the User login service.
+   * Validation for SSO signin.
+   * $d_user referes to drupal user.
+   */
+  if ($controller['callback'] === '_user_resource_login') {
+    $user_id = filter_xss($args[0]);
+    $password = filter_xss($args[1]);
+    $d_user = user_load_by_name($user_id);
+
+    /* Single signon call */
+    $sso_server = "https://signin.capgemini.com/opensso/identity/authenticate?service=intranetSequence&username={$user_id}&password={$password}&uri=realm=Capgemini&module=RADIUS";
+    $response = drupal_http_request($sso_server, array(
+      'method' => 'GET',
+      'max_redirects' => 0,
+      'headers' => array(
+        'Content-type' => 'text/plain;charset=UTF-8',
+      )
+        )
+    );
+   
+    if ($response->code == 200) {       
+      if (empty($d_user)) {
+        $new_user = _custom_services_create_new_user($user_id, $password);
+      }
+      else {
+        /* Update password if user already exist in database upadting the password. */
+        $edit['pass'] = filter_xss($password);
+        $update = user_save($d_user, $edit);
+      }
+    }
+    else {
+      $message = array(t('message') => t('Wrong userid or password.'));
+      return services_error("User does not exit", 200, $message);
+    }
+  }
+  /**
+   * Alter user update services
+   */
+  if ($controller['callback'] === '_user_resource_update') {
+    global $user;
+//    $password = $user->pass;
+    $first_name = $args[1]['first_name'];
+    $last_name = $args[1]['last_name'];
+    $mail = $args[1]['email'];
+    $gender = $args[1]['gender'];
+    $date_of_birth = $args[1]['date_of_birth'];
+    $args[1] = array();
+    if ($mail != NULL) {
+      $email = _custom_services_update_email($mail, $user->uid);
+    }
+    if ($first_name != NULL) {
+      $args[1]['field_first_name'] = array(
+        LANGUAGE_NONE => array(
+          0 => array(
+            'value' => $first_name,
+          ),
+        ),
+      );
+    }
+    if ($last_name != NULL) {
+      $args[1]['field_last_name'] = array(
+        LANGUAGE_NONE => array(
+          0 => array(
+            'value' => $last_name
+          ),
+        ),
+      );
+    }
+    if ($gender != NULL) {
+      $args[1]['field_gender'] = array(
+        LANGUAGE_NONE => array(
+          0 => array(
+            'value' => $gender
+          ),
+        ),
+      );
+    }
+    if ($date_of_birth != NULL) {
+      $args[1]['field_date_of_birth'] = array(
+        LANGUAGE_NONE => array(
+          0 => array(
+            'value' => (string) $date_of_birth,
+          ),
+        ),
+      );
+    }
+  }
+  /**
+   * Alter file create service request.
+   */
+  if ($controller['callback'] === '_file_resource_create') {
+    $file = $args[0]['file'];
+    $filename = $args[0]['filename'];
+    $args[0] = array();
+    $args[0]['file'] = array('file' => $file, 'filename' => $filename);
+
+    $data = base64_decode($args[0]['file']['file']);
+    if (imagecreatefromstring($data) === FALSE) {
+      return services_error("Server not available", 500, array("message" => t("Input image file is corrupted and cannot be loaded, please try with right code.")));
+    }
+    $args[0]['file']['filepath'] = "public://pictures/fitclub/" . $filename;
+  }
+}
+
+/**
+ * Implemented hook_services_request_postprocess_alter() 
+ * @param type $controller 
+ * @param type $args
+ * @param type $result
+ */
+function custom_services_services_request_postprocess_alter(&$controller, $args, &$result) {
+
+  if ($controller !== NULL) {
+    /** For User login */
+    switch ($controller['callback']) {
+      case '_user_resource_login':
+        $email_id = $result->user->mail;
+        $uid = $result->user->uid;
+        $name = $result->user->name;
+        $access = $result->user->access;
+        $login_id = $result->user->name;
+        $login = $result->user->login;
+        $mail = $result->user->mail;
+        if (!is_null($result->user->field_first_name)) {
+          $first_name = $result->user->field_first_name[LANGUAGE_NONE][0]['value'];
+        }
+        if (!is_null($result->user->field_last_name)) {
+          $last_name = $result->user->field_last_name[LANGUAGE_NONE][0]['value'];
+        }
+        if (!is_null($result->user->field_gender)) {
+          $gender = $result->user->field_gender[LANGUAGE_NONE][0]['value'];
+        }
+        if (!is_null($result->user->field_date_of_birth)) {
+          $date_of_birth = $result->user->field_date_of_birth[LANGUAGE_NONE][0]['value'];
+        }
+        $profile_image_url = $result->user->picture->url;
+        $result->user = NULL;
+        $result->user = array(
+          'login_id' => $login_id,
+          'login' => $login,
+          'email' => $mail,
+          'first_name' => $first_name,
+          'last_name' => $last_name,
+          'gender' => $gender,
+          'date_of_birth' => intval($date_of_birth),
+          'user_id' => intval($uid),
+          'profile_image_url' => $profile_image_url,
+        );
+        foreach ($result->user as $key => $value) {
+          if (empty($value)) {
+            unset($result->user[$key]);
+          }
+        }
+        break;
+
+      /* For User profile output. */
+      case '_user_resource_retrieve':
+        $uid = $result->uid;
+        $user = user_load($uid);
+        $name = $result->name;
+        $access = $result->access;
+        $login_id = $result->name;
+        $login = $result->login;
+        $mail = $result->mail;
+        $first_name = $user->field_first_name[LANGUAGE_NONE][0]['value'];
+        $last_name = $user->field_last_name[LANGUAGE_NONE][0]['value'];
+        $gender = $user->field_gender[LANGUAGE_NONE][0]['value'];
+        $date_of_birth = $user->field_date_of_birth[LANGUAGE_NONE][0]['value'];
+        $profile_image_url = $user->picture->url;
+        $result = NULL;
+        $result = array(
+          'login_id' => $login_id,
+          'login' => $login,
+          'email' => $mail,
+          'first_name' => $first_name,
+          'last_name' => $last_name,
+          'gender' => $gender,
+          'date_of_birth' => intval($date_of_birth),
+          'user_id' => intval($uid),
+          'profile_image_url' => $profile_image_url,
+        );
+        foreach ($result as $key => $value) {
+          if (empty($value)) {
+            unset($result[$key]);
+          }
+        }
+        break;
+
+      /* Change the logout result */
+      case '_user_resource_logout':
+        if ($result === TRUE) {
+          $result = array('message' => t("User has logged out successfully"));
+        }
+        break;
+      /* Change the user update result */
+      case '_user_resource_update':
+        if ($result['field_first_name'] != NULL) {
+          $first_name = $result['field_first_name'][LANGUAGE_NONE][0]['value'];
+        }
+        if ($result['field_last_name'] != NULL) {
+          $last_name = $result['field_last_name'][LANGUAGE_NONE][0]['value'];
+        }
+        if ($result['field_gender'] != NULL) {
+          $gender = $result['field_gender'][LANGUAGE_NONE][0]['value'];
+        }
+        if ($result['field_date_of_birth'] != NULL) {
+          $date_of_birth = $result['field_date_of_birth'][LANGUAGE_NONE][0]['value'];
+        }
+        $uid = $result['uid'];
+        $result = array();
+        global $user, $base_url;
+        $mail = $user->mail;
+        $result = array(
+          'user_id' => intval($uid),
+          'first_name' => filter_xss($first_name),
+          'last_name' => $last_name,
+          'gender' => $gender,
+          'date_of_birth' => intval($date_of_birth),
+          'mail' => $mail,
+        );
+        /**
+         * Unset the field if not updated.
+         */
+        foreach ($result as $key => $value) {
+          if (empty($value)) {
+            unset($result[$key]);
+          }
+        }
+        break;
+
+      case "_file_resource_create":
+        global $user;
+        $fid = $result['fid'];
+        if (isset($fid)) {
+          $file = file_load($fid);
+          $uid = $user->uid;
+          $account = user_load($uid);
+          $fileload = file_load($result['fid']);
+          $filepath = $fileload->uri;
+          $file = (object) array(
+                'uid' => $uid,
+                'uri' => $filepath,
+                'filemime' => file_get_mimetype($filepath),
+                'status' => 1,
+          );
+
+          $file = file_copy($file, 'public://pictures/fitclub');
+
+          $edit['picture'] = $file;
+          user_save($account, $edit);
+          $user_data = user_load($user->uid);
+          $profile_image = $user_data->picture->filename;
+          $result = array();
+          $result["status"] = t("success");
+          $result["Message"] = t("Your profile image have been successfully changed.");
+          $result['user']["profile_image_url"] = $GLOBALS['base_url'] . '/' . variable_get('file_public_path', conf_path() . '/files') . '/pictures/fitclub/' . $profile_image;
+        }
+        else {
+          $result = array("Message" => t("Image has not uploaded successfully, please try again."));
+        }
+    }
+  }
+}
+
+/** @function used to create new user from LDAP.
+ * @param type $user_id
+ * @param type $password
+ * @param type $mail
+ * @param type $first_name
+ * @param type $last_name
+ * @return type
+ */
+function _custom_services_create_new_user($user_id, $password) {
+  $new_user = array(
+    'name' => $user_id,
+    'pass' => $password,
+    'mail' => $user_id . "@capgemini.com",
+    'status' => 1,
+    'roles' => array(
+      DRUPAL_AUTHENTICATED_RID => 'authenticated user'
+    ),
+  );
+  // The first parameter is sent blank so a new user is created.
+  $user = user_save(null, $new_user);
+  return $user;
+}
+
+/**
+ * Update email id of the current user at drupal
+ */
+function _custom_services_update_email($email, $uid) {
+  $update_user = array(
+    'mail' => filter_xss($email),
+  );
+  user_save($uid, $update_user);
+}

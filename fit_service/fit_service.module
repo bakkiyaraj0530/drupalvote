@@ -1,0 +1,446 @@
+<?php
+
+/**
+ * Access callback status.
+ */
+function _fit_service_access($op) {
+  return TRUE;
+}
+
+/**
+ * Implements hook_ctools_plugin_api().
+ */
+function fit_service_ctools_plugin_api($owner, $api) {
+  if ($owner == 'services' && $api == 'services') {
+    return array('version' => 3);
+  }
+}
+
+/**
+ * Implementation of hook_services_resources().
+ * Creating fit club services.
+ */
+function fit_service_services_resources() {
+
+  $fit_service_service = array(
+    /* Create / Set  Challenge  service */
+
+    'challenge' => array(
+      'actions' => array(
+        'create' => array(
+          'help' => 'Create a Challenge',
+          'file' => array('type' => 'inc', 'module' => 'fit_service', 'name' => 'fit_service'),
+          'callback' => '_fit_service_challenge_create',
+          'access callback' => '_fit_service_access',
+          'access arguments append' => FALSE,
+          'args' => array(
+            array(
+              'name' => 'id',
+              'type' => 'array',
+              'description' => 'Token_id',
+              'source' => 'data',
+              'optional' => TRUE,
+              'default value' => array()),
+            array(
+              'name' => 'value',
+              'type' => 'string',
+              'description' => 'Function to perform',
+              'source' => array('path' => '0'),
+              'optional' => TRUE,
+              'default' => '0',
+            ),
+            array(
+              'name' => 'value',
+              'type' => 'string',
+              'description' => 'Function to perform',
+              'source' => array('path' => '1'),
+              'optional' => TRUE,
+              'default' => '0',
+            ),
+            array(
+              'name' => 'value',
+              'type' => 'string',
+              'description' => 'Function to perform',
+              'source' => array('path' => '2'),
+              'optional' => TRUE,
+              'default' => '0',
+            ),
+            array(
+              'name' => 'value',
+              'type' => 'string',
+              'description' => 'Function to perform',
+              'source' => array('path' => '3'),
+              'optional' => TRUE,
+              'default' => '0',
+            ),
+            array(
+              'name' => 'value',
+              'type' => 'string',
+              'description' => 'Function to perform',
+              'source' => array('path' => '4'),
+              'optional' => TRUE,
+              'default' => '0',
+            ),
+            array(
+              'name' => 'value',
+              'type' => 'string',
+              'description' => 'Function to perform',
+              'source' => array('path' => '5'),
+              'optional' => TRUE,
+              'default' => '0',
+            ),
+            array(
+              'name' => 'value',
+              'type' => 'string',
+              'description' => 'Function to perform',
+              'source' => array('path' => '6'),
+              'optional' => TRUE,
+              'default' => '0',
+            ),
+            array(
+              'name' => 'value',
+              'type' => 'string',
+              'description' => 'Function to perform',
+              'source' => array('path' => '7'),
+              'optional' => TRUE,
+              'default' => '0',
+            ),
+            array(
+              'name' => 'value',
+              'type' => 'string',
+              'description' => 'Function to perform',
+              'source' => array('path' => '8'),
+              'optional' => TRUE,
+              'default' => '0',
+            ),
+            array(
+              'name' => 'value',
+              'type' => 'string',
+              'description' => 'Function to perform',
+              'source' => array('path' => '9'),
+              'optional' => TRUE,
+              'default' => '0',
+            ))),
+        'delete' => array(
+          'help' => 'Deletes challenge data from database',
+          'callback' => '_fit_service_challenge_delete',
+          'file' => array('type' => 'inc', 'module' => 'fit_service', 'name' => 'fit_service'),
+          'access callback' => '_fit_service_access',
+          'access arguments' => array('delete'),
+          'access arguments append' => TRUE,
+          'args' => array(
+            array(
+              'name' => 'userId',
+              'type' => 'int',
+              'description' => '',
+              'source' => 'data',
+              'optional' => FALSE,
+              'default value' => 0),
+            array(
+              'name' => 'challengeId',
+              'type' => 'int',
+              'description' => '',
+              'source' => 'data',
+              'optional' => FALSE,
+              'default value' => 0),
+          )),
+        'update' => array(
+          'help' => 'Update Challenge data',
+          'callback' => '_fit_service_update_challenge',
+          'file' => array('file' => 'inc', 'module' => 'fit_service', 'name' => 'fit_service'),
+          'access callback' => '_fit_service_access',
+          'access arguments' => array('update'),
+          'access arguments append' => TRUE,
+          'args' => array(
+            array(
+              'name' => 'nid',
+              'type' => 'int',
+              'description' => 'Unique identifier for this node',
+              'source' => 'data',
+              'optional' => FALSE,
+            )))
+      ),
+    ),
+// Get Challenge type list  - service
+    'challenge_list' => array(
+      'index' => array(
+        'help' => 'Retrievs user data from Drupal Service Challenge List table',
+        'file' => array(
+          'file' => 'inc',
+          'module' => 'fit_service',
+          'name' => 'fit_service'),
+        'callback' => '_fit_service_challenge_list',
+        'access callback' => '_fit_service_access',
+        'args' => array(
+          array(
+            'name' => 'userid',
+            'type' => 'int',
+            'description' => 'The id from request URL',
+            'source' => 'data',
+            'optional' => TRUE,
+            'default value' => array())))),
+    // Get Challenge by Challenge Id - service
+    'getchallenge' => array(
+      'retrieve' => array(
+        'help' => 'Retrievs user data from Drupal Service Challenge table',
+        'file' => array(
+          'file' => 'inc',
+          'module' => 'fit_service',
+          'name' => 'fit_service'),
+        'callback' => '_fit_service_get_challenge_byuser_cid',
+        'access callback' => '_fit_service_access',
+        'args' => array(
+          array(
+            'name' => 'cid',
+            'type' => 'array',
+            'description' => 'Token_id',
+            'source' => 'data',
+            'optional' => TRUE,
+            'default value' => array()),
+          array(
+            'name' => 'value',
+            'type' => 'int',
+            'description' => 'The id from request URL',
+            'source' => array('path' => '0'),
+            'optional' => FALSE,
+            'default value' => array())))),
+    // Get Challenge by User Id - service
+    'getchallenges' => array(
+      'actions' => array(
+        'list' => array(
+          'file' => array(
+            'file' => 'inc',
+            'module' => 'fit_service',
+            'name' => 'fit_service'
+          ),
+          'help' => 'Logout a user session',
+          'callback' => '_fit_service_get_challenge_by_user',
+          'access callback' => 'services_access_menu',
+        ),
+      ),
+      'retrieve' => array(
+        'help' => 'Retrievs user data from Drupal Service Challenge table',
+        'file' => array(
+          'file' => 'inc',
+          'module' => 'fit_service',
+          'name' => 'fit_service'),
+        'callback' => '_fit_service_get_challenge_byuser',
+        'access callback' => '_fit_service_access',
+        'args' => array(
+          array(
+            'name' => 'cid',
+            'type' => 'array',
+            'description' => 'Token_id',
+            'source' => 'data',
+            'optional' => TRUE,
+            'default value' => array()),
+          array(
+            'name' => 'value',
+            'type' => 'int',
+            'description' => 'The id from request URL',
+            'source' => array('path' => '0'),
+            'optional' => FALSE,
+            'default value' => array())))),
+// Join the user to challenge
+    'joinchallenge' => array(
+      'create' => array(
+        'help' => 'Join users to a particular challenge',
+        'file' => array('file' => 'inc', 'module' => 'fit_service', 'name' => 'fit_service'),
+        'callback' => '_fit_service_join_user_challenge',
+        'access arguments' => array('join challenge'),
+        'access callback' => '_fit_service_access',
+        'access arguments append' => FALSE,
+        'args' => array(
+          array(
+            'name' => 'cid',
+            'type' => 'array',
+            'description' => 'Token_id',
+            'source' => 'data',
+            'optional' => TRUE,
+            'default value' => array())))),
+//Leave Challenge - service
+    'leavechallenges' => array(
+      'actions' => array(
+        'leave' => array(
+          'help' => 'For the users to leave the challenge, Exception: Admin user',
+          'file' => array('file' => 'inc', 'module' => 'fit_service', 'name' => 'fit_service'),
+          'callback' => '_fit_service_leave_challenge_user',
+          'access arguments' => array('leave challenge'),
+          'access callback' => '_fit_service_access',
+          'args' => array(
+            array(
+              'name' => 'userId',
+              'type' => 'int',
+              'description' => '',
+              'source' => 'data',
+              'optional' => FALSE,
+              'default value' => 0),
+            array(
+              'name' => 'challengeId',
+              'type' => 'int',
+              'description' => '',
+              'source' => 'data',
+              'optional' => FALSE,
+              'default value' => 0),
+          )))),
+//Log activity - service
+    'logactivity' => array(
+      'create' => array(
+        'help' => 'Logging the activity to a challenge',
+        'file' => array('file' => 'inc', 'module' => 'fit_service', 'name' => 'fit_service'),
+        'callback' => '_fit_service_log_activity_challenge',
+        'access arguments' => array('log activity'),
+        'access callback' => '_fit_service_access',
+        'access arguments append' => FALSE,
+        'args' => array(
+          array(
+            'name' => 'cid',
+            'type' => 'array',
+            'description' => 'Token_id',
+            'source' => 'data',
+            'optional' => TRUE,
+            'default value' => array(),
+          ),
+        ),
+      ),
+    ),
+//Search Challenge - service
+    'searchchallenge' => array(
+      'actions' => array(
+        'search' => array(
+          'help' => 'Search all the challenges where user wants to join and participate the ongoing challenges.',
+          'file' => array('file' => 'inc', 'module' => 'fit_service', 'name' => 'fit_service'),
+          'callback' => '_fit_service_search_challenge_user',
+          'access arguments' => array('search challenge'),
+          'access callback' => '_fit_service_access',
+          'args' => array(
+            array(
+              'name' => 'userId',
+              'type' => 'int',
+              'description' => '',
+              'source' => 'data',
+              'optional' => FALSE,
+              'default value' => 0))))),
+
+    'getbadges' => array(
+	  'retrieve' => array(
+	    'help' => 'Retrievs Badge data from Drupal Service Badge table',
+		'file' => array('file' => 'inc','module' => 'fit_service','name' => 'fit_service'),
+		'callback' => '_fit_service_get_badges',
+		'access callback' => '_fit_service_access',
+		'args' => array(
+			array(
+			'name' => 'cid',
+			'type' => 'array',
+			'description' => 'Token_id',
+			'source' => 'data',
+			'optional' => TRUE,
+			'default value' => array()),
+	        array(
+			'name' => 'userid',
+			'type' => 'int',
+			'description' => 'The id from request URL',
+			'source' => array('path' => '0'),
+			'optional' => FALSE,
+			'default value' => array())))),
+  );
+
+  return $fit_service_service;
+}
+
+/* 
+ * @hook_form_FORM_ID_alter for badge form to modify the #states and default dropdown values.
+*/
+function fit_service_form_node_form_alter(&$form, &$form_state, $form_id) {
+   
+	if($form_id == "badges_node_form") { 
+		
+		drupal_add_js(drupal_get_path('module', 'fit_service') . '/fit_service.js');
+		$form['field_activity_metrics_one']['und']['#title'] = t('Metrics');
+		$form['field_activity_metrics_one']['und']['#options']['_none'] = t('Select Metrics');
+		$form['field_activity_metrics_two']['und']['#title'] = t('Metrics');
+		$form['field_activity_metrics_two']['und']['#options']['_none'] = t('Select Metrics');
+		$form['field_activity_metrics_three']['und']['#title'] = t('Metrics');
+		$form['field_activity_metrics_three']['und']['#options']['_none'] = t('Select Metrics');
+		$form['field_activity_metrics_four']['und']['#title'] = t('Metrics');
+		$form['field_activity_metrics_four']['und']['#options']['_none'] = t('Select Metrics');
+		$form['field_activity_metrics_five']['und']['#title'] = t('Metrics');
+		$form['field_activity_metrics_five']['und']['#options']['_none'] = t('Select Metrics');
+		$form['field_activity_metrics_six']['und']['#title'] = t('Metrics');
+		$form['field_activity_metrics_six']['und']['#options']['_none'] = t('Select Metrics');
+		unset($form['field_activity_list']['und']['#options']['_none']);
+		$form['title']['#title'] = t("Enter Badge Name");
+		$form['field_badge_image']['und'][0]['#title'] = t("Badge Image");
+		$form['#validate'][0] = "fit_service_validate";
+		$form['#validate'][1] = "node_form_validate";	
+		$form['field_badge_type']['#states']['visible'] = array('input[name="name"]' => array('filled' => TRUE));
+		$form['field_activity_list']['#states']['visible'] = array('input[name="name"]' => array('filled' => TRUE));
+		$form['field_challenge_list']['#states']['visible'] = array('select[name="field_badge_type[und]"]' => array('value' => 'Challenge'));
+		$form['field_activity_list']['#states']['visible'] = array('select[name="field_badge_type[und]"]' => array('value' => 'Activity'));
+
+		$metricsVone = array_keys(taxonomy_get_term_by_name("Running"));
+		$metricsVtwo = array_keys(taxonomy_get_term_by_name("Walking"));
+
+		$form['field_activity_metrics_one']['#states']['visible'] = array('input[name="field_activity_list[und]"]' => 
+		array(array('value' => $metricsVone[0]), array('value' => $metricsVtwo[0])));
+		$metricsTone = array_keys(taxonomy_get_term_by_name("Swimming"));
+		$metricsTtwo = array_keys(taxonomy_get_term_by_name("Cycling"));
+		$metricsTthree = array_keys(taxonomy_get_term_by_name("Rowing"));
+
+		$form['field_activity_metrics_two']['#states']['visible'] = array('input[name="field_activity_list[und]"]' => array(array('value' => $metricsTone[0]), array('value' => $metricsTtwo[0]), array('value' => $metricsTthree[0])));
+
+		$metricsTHone = array_keys(taxonomy_get_term_by_name("Climbing"));
+		$form['field_activity_metrics_three']['#states']['visible'] = array('input[name="field_activity_list[und]"]' => array('value' => $metricsTHone[0]));
+		$metricsFone = array_keys(taxonomy_get_term_by_name("Rock Climbing"));
+		$form['field_activity_metrics_four']['#states']['visible'] = array('input[name="field_activity_list[und]"]' => array('value' => $metricsFone[0]));
+
+		$metricsFveone = array_keys(taxonomy_get_term_by_name("Gym Session"));
+		$metricsFtwo = array_keys(taxonomy_get_term_by_name("Gym Class"));
+		$metricsFthree = array_keys(taxonomy_get_term_by_name("Golf"));
+		$metricsFfour = array_keys(taxonomy_get_term_by_name("Tennis"));
+		$metricsFfive = array_keys(taxonomy_get_term_by_name("Squash")); 
+		$metricsFsix = array_keys(taxonomy_get_term_by_name("Badminton")); 
+		$metricsFseven = array_keys(taxonomy_get_term_by_name("Rugby")); 
+		$metricsFeight = array_keys(taxonomy_get_term_by_name("Football")); 
+		$form['field_activity_metrics_five']['#states']['visible'] = array('input[name="field_activity_list[und]"]' => array(array('value' => $metricsFveone[0]), array('value' => $metricsFtwo[0]),array('value' => $metricsFthree[0]),array('value' => $metricsFfour[0]),array('value' => $metricsFfive[0]),array('value' => $metricsFsix[0]), array('value' => $metricsFseven[0]), array('value' => $metricsFeight[0])));
+
+		$metricssixeone = array_keys(taxonomy_get_term_by_name("Yoga"));
+		$form['field_activity_metrics_six']['#states']['visible'] = array('input[name="field_activity_list[und]"]' => array('value' => $metricssixeone[0]));
+		$form['field_badge_target']['#title'] = t('Badge Target');
+
+
+		$query = new EntityFieldQuery();
+		$entities = $query->entityCondition('entity_type', 'node')
+		->entityCondition('bundle', 'challenge')
+		->fieldCondition('field_issearchable', 'value',1)
+		->range(0, 25)
+		->propertyOrderBy('nid', 'DESC')
+		->execute(); 
+		$nodes = node_load_multiple(array_keys($entities['node']), array('status' => 1));  
+		foreach($nodes as $challengearr) {
+			$challenges[$challengearr->nid] = $challengearr->title.' -       <strong> '.$challengearr->field_goal['und'][0]['value'].' </strong>'.$challengearr->field_goalunit['und'][0]['value'];
+		}
+		$form['field_challenge_list']['und']['#options'] = $challenges;
+
+		if(isset($form_state['node']->field_challenge_list['und'][0]['value'])) {
+			$form['field_challenge_list']['und']['#default_value'] =  $form_state['node']->field_challenge_list['und'][0]['value'];
+		}   
+	}
+}
+/*
+* @hook_validate, function to validate the badge target and actual value.
+*/
+
+function fit_service_validate($form, &$form_state) {
+		
+	$metrics = $form_state['input']['field_badge_target']['und'][0]['value'];
+	if(is_numeric($metrics) == FALSE) {
+		form_set_error('field_badge_target', 'Badge Target value should be an integer value');
+	}
+	if(isset($form_state['input']['field_challenge_list']['und'])) {
+		$challenge_value = node_load($form_state['input']['field_challenge_list']['und']);
+		if($challenge_value->field_goal['und'][0]['value'] <= $metrics) {
+			form_set_error('field_badge_target', 'Badge value should be less than the Target or Goal value');
+		}
+	  }
+}
